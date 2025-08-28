@@ -1,0 +1,2 @@
+// Disease.js
+// Disease model

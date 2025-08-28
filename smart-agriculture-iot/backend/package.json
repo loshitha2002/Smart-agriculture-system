@@ -1,0 +1,37 @@
+{
+  "name": "smart-agriculture-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Smart Agriculture IoT system",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "seed": "node scripts/seed-database.js"
+  },
+  "dependencies": {
+    "express": "^4.18.1",
+    "mongoose": "^6.5.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^8.5.1",
+    "axios": "^0.27.2",
+    "socket.io": "^4.5.1",
+    "mqtt": "^4.3.7",
+    "node-cron": "^3.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19",
+    "jest": "^28.1.3",
+    "supertest": "^6.2.4"
+  },
+  "keywords": [
+    "agriculture",
+    "iot",
+    "api",
+    "nodejs"
+  ],
+  "author": "loshitha2002",
+  "license": "MIT"
+}

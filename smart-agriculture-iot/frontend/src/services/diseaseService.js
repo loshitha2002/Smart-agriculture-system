@@ -1,0 +1,2 @@
+// diseaseService.js
+// Disease service

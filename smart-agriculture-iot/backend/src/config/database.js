@@ -1,0 +1,2 @@
+// database.js
+// Database configuration
