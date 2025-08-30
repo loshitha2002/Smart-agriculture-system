@@ -1,362 +1,373 @@
 import React, { useState, useEffect } from 'react';
+import './Analytics.css';
 
 const Analytics = () => {
-  const [dateRange, setDateRange] = useState('7d');
+  const [dateRange, setDateRange] = useState('7');
   const [isRealTime, setIsRealTime] = useState(true);
   const [data, setData] = useState(null);
+  const [predictions, setPredictions] = useState(null);
+  const [efficiency, setEfficiency] = useState(null);
+  const [comparison, setComparison] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock real-time data generator
+  // Fetch analytics data from backend
   useEffect(() => {
-    const generateData = () => {
+    const fetchAnalyticsData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch historical data
+        const historicalResponse = await fetch(`http://localhost:5000/api/analytics/historical?days=${dateRange}`);
+        const historicalData = await historicalResponse.json();
+        
+        // Fetch predictions
+        const predictionsResponse = await fetch('http://localhost:5000/api/analytics/predictions');
+        const predictionsData = await predictionsResponse.json();
+        
+        // Fetch efficiency metrics
+        const efficiencyResponse = await fetch('http://localhost:5000/api/analytics/efficiency');
+        const efficiencyData = await efficiencyResponse.json();
+        
+        // Fetch comparative analysis
+        const comparisonResponse = await fetch('http://localhost:5000/api/analytics/comparison');
+        const comparisonData = await comparisonResponse.json();
+        
+        setData(historicalData.data);
+        setPredictions(predictionsData.predictions);
+        setEfficiency(efficiencyData.metrics);
+        setComparison(comparisonData.analysis);
+        
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+        // Fallback to mock data
+        generateMockData();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const generateMockData = () => {
       const now = new Date();
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(now - (6 - i) * 24 * 60 * 60 * 1000);
+      const days = parseInt(dateRange);
+      const mockData = Array.from({ length: days }, (_, i) => {
+        const date = new Date(now - (days - 1 - i) * 24 * 60 * 60 * 1000);
         return {
-          date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           temperature: Math.round(22 + Math.random() * 15),
           humidity: Math.round(60 + Math.random() * 30),
           soilMoisture: Math.round(40 + Math.random() * 40),
           lightIntensity: Math.round(300 + Math.random() * 700),
+          waterUsage: Math.round(50 + Math.random() * 150),
+          energyConsumption: Math.round(20 + Math.random() * 60),
+          yield: Math.round(Math.random() * 100),
         };
       });
-
-      const realTimeMetrics = {
-        temperature: Math.round(25 + Math.random() * 6),
-        humidity: Math.round(65 + Math.random() * 15),
-        soilMoisture: Math.round(55 + Math.random() * 20),
-        lightIntensity: Math.round(700 + Math.random() * 300),
-        carbonFootprint: 145,
-        waterUsage: 2340,
-        energyEfficiency: 87
-      };
-
-      setData({
-        historical: last7Days,
-        realTime: realTimeMetrics,
-        predictions: {
-          yieldIncrease: 15.2,
-          waterSavings: 23,
-          diseaseRisk: 12,
-          harvestDate: 'Sep 15'
+      
+      setData(mockData);
+      setPredictions({
+        yieldPrediction: { value: 87, trend: 'increasing', confidence: 92 },
+        diseaseRisk: { value: 15, level: 'low' },
+        waterOptimization: { savings: 18 },
+        harvestPrediction: { estimatedDate: 'Sep 15, 2025', daysRemaining: 16 }
+      });
+      setEfficiency({
+        waterEfficiency: { value: 2.3, trend: 'improving' },
+        energyEfficiency: { value: 2.8, trend: 'stable' },
+        resourceUtilization: { water: 78, energy: 85, nutrients: 92 },
+        carbonFootprint: { value: 45, reduction: 12 }
+      });
+      setComparison({
+        industryBenchmark: {
+          yield: { yours: 87, industry: 75, difference: 16 },
+          waterUsage: { yours: 120, industry: 180, difference: -33 },
+          energyEfficiency: { yours: 92, industry: 78, difference: 18 }
         }
       });
     };
 
-    generateData();
+    fetchAnalyticsData();
     
     if (isRealTime) {
-      const interval = setInterval(generateData, 3000);
+      const interval = setInterval(fetchAnalyticsData, 30000);
       return () => clearInterval(interval);
     }
-  }, [isRealTime, dateRange]);
+  }, [dateRange, isRealTime]);
 
-  const MetricChart = ({ title, data, color, unit, icon }) => {
+  // Simple Chart Component using SVG
+  const SimpleLineChart = ({ data, title, color = '#4CAF50' }) => {
     if (!data || data.length === 0) return null;
     
-    const maxValue = Math.max(...data);
-    const minValue = Math.min(...data);
+    const maxValue = Math.max(...data.map(d => d.value));
+    const minValue = Math.min(...data.map(d => d.value));
+    const range = maxValue - minValue || 1;
     
+    const points = data.map((item, index) => {
+      const x = (index / (data.length - 1)) * 300;
+      const y = 100 - ((item.value - minValue) / range) * 80;
+      return `${x},${y}`;
+    }).join(' ');
+
     return (
-      <div className="card">
-        <div className="card-header flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-xl">{icon}</span>
-            <div>
-              <h3 className="font-bold text-gray-800">{title}</h3>
-              <p className="text-xs text-gray-500">Last 7 days</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className={`text-2xl font-bold ${
-              color === 'primary' ? 'text-blue-600' : 
-              color === 'success' ? 'text-green-600' : 
-              color === 'warning' ? 'text-yellow-600' : 
-              'text-red-600'
-            }`}>
-              {data[data.length - 1]}{unit}
-            </div>
-            <div className="text-xs text-gray-500">
-              {data[data.length - 1] > data[data.length - 2] ? '↗' : '↘'} 
-              {Math.abs(data[data.length - 1] - data[data.length - 2]).toFixed(1)}
-            </div>
-          </div>
-        </div>
-        <div className="card-body">
-          <div className="relative h-24 mt-4">
-            <svg className="w-full h-full" viewBox="0 0 300 100">
-              <polyline
-                fill="none"
-                stroke={
-                  color === 'primary' ? '#3B82F6' : 
-                  color === 'success' ? '#10B981' : 
-                  color === 'warning' ? '#F59E0B' : 
-                  '#EF4444'
-                }
-                strokeWidth="2"
-                points={data.map((value, index) => {
-                  const x = (index / (data.length - 1)) * 280 + 10;
-                  const y = 80 - ((value - minValue) / (maxValue - minValue)) * 60;
-                  return `${x},${y}`;
-                }).join(' ')}
+      <div className="simple-chart">
+        <h4>{title}</h4>
+        <svg width="320" height="120" viewBox="0 0 320 120">
+          <polyline
+            fill="none"
+            stroke={color}
+            strokeWidth="3"
+            points={points}
+          />
+          {data.map((item, index) => {
+            const x = (index / (data.length - 1)) * 300;
+            const y = 100 - ((item.value - minValue) / range) * 80;
+            return (
+              <circle
+                key={index}
+                cx={x}
+                cy={y}
+                r="4"
+                fill={color}
               />
-              {data.map((value, index) => {
-                const x = (index / (data.length - 1)) * 280 + 10;
-                const y = 80 - ((value - minValue) / (maxValue - minValue)) * 60;
-                return (
-                  <circle
-                    key={index}
-                    cx={x}
-                    cy={y}
-                    r="3"
-                    fill={
-                      color === 'primary' ? '#3B82F6' : 
-                      color === 'success' ? '#10B981' : 
-                      color === 'warning' ? '#F59E0B' : 
-                      '#EF4444'
-                    }
-                  />
-                );
-              })}
-            </svg>
-          </div>
-          <div className="flex justify-between text-xs text-gray-500 mt-2">
-            <span>Mon</span>
-            <span>Today</span>
-          </div>
+            );
+          })}
+        </svg>
+        <div className="chart-labels">
+          <span>{data[0]?.date}</span>
+          <span>{data[data.length - 1]?.date}</span>
         </div>
       </div>
     );
   };
 
-  const PredictionCard = ({ title, value, unit, trend, description, icon }) => (
-    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <span className="text-2xl">{icon}</span>
-          <h3 className="font-bold text-indigo-800">{title}</h3>
-        </div>
-        <div className={`status-indicator ${trend > 0 ? 'status-success' : 'status-warning'}`}>
-          {trend > 0 ? '↗' : '↘'} {Math.abs(trend)}%
-        </div>
-      </div>
-      <div className="text-3xl font-bold text-indigo-900 mb-1">
-        {value}{unit}
-      </div>
-      <p className="text-sm text-indigo-600">{description}</p>
-    </div>
-  );
-
-  if (!data) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="loading-spinner mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading analytics data...</p>
+      <div className="analytics-page">
+        <div className="analytics-header">
+          <h1>📈 Advanced Analytics</h1>
+          <p>Loading analytics data...</p>
+        </div>
+        <div className="loading-spinner">
+          <div className="spinner"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              📊 Smart Analytics Dashboard
-            </h1>
-            <p className="text-gray-600 text-lg">
-              Real-time insights and predictive analytics for optimal farming
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-4 mt-4 lg:mt-0">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Real-time:</label>
-              <button
-                onClick={() => setIsRealTime(!isRealTime)}
-                className={`toggle-switch ${isRealTime ? 'active' : ''}`}
-              >
-                <div className="toggle-handle"></div>
-              </button>
-            </div>
-            
-            <select
-              value={dateRange}
+    <div className="analytics-page">
+      {/* Header */}
+      <div className="analytics-header">
+        <div className="header-content">
+          <h1>📈 Advanced Analytics</h1>
+          <p>Comprehensive insights and predictive analysis for your smart farm</p>
+        </div>
+        
+        <div className="analytics-controls">
+          <div className="control-group">
+            <label>Time Range:</label>
+            <select 
+              value={dateRange} 
               onChange={(e) => setDateRange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="date-range-select"
             >
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 3 months</option>
+              <option value="7">Last 7 Days</option>
+              <option value="14">Last 14 Days</option>
+              <option value="30">Last 30 Days</option>
             </select>
           </div>
+          
+          <div className="control-group">
+            <label className="real-time-toggle">
+              <input 
+                type="checkbox" 
+                checked={isRealTime} 
+                onChange={(e) => setIsRealTime(e.target.checked)}
+              />
+              <span className="toggle-slider"></span>
+              Real-time Updates
+            </label>
+          </div>
         </div>
+      </div>
 
-        {/* Real-time Status Bar */}
-        {isRealTime && (
-          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-4 mb-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-white rounded-full animate-ping"></div>
-                <span className="font-semibold">🔴 Live Data Stream Active</span>
-              </div>
-              <div className="text-sm opacity-90">Last update: {new Date().toLocaleTimeString()}</div>
+      {/* Key Metrics */}
+      <div className="metrics-grid">
+        <div className="metric-card primary">
+          <div className="metric-icon">🎯</div>
+          <div className="metric-content">
+            <h3>Yield Prediction</h3>
+            <div className="metric-value">
+              {predictions?.yieldPrediction?.value || 0}%
+            </div>
+            <div className="metric-trend positive">
+              ↗ {predictions?.yieldPrediction?.trend || 'stable'}
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Current Conditions */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="metric-card text-center">
-            <div className="text-2xl mb-2">🌡️</div>
-            <div className="text-2xl font-bold text-blue-600">{data.realTime.temperature}°C</div>
-            <div className="text-gray-600 font-medium">Temperature</div>
-            <div className="text-xs text-gray-500 mt-1">Optimal: 20-30°C</div>
-          </div>
-          
-          <div className="metric-card text-center">
-            <div className="text-2xl mb-2">💧</div>
-            <div className="text-2xl font-bold text-cyan-600">{data.realTime.humidity}%</div>
-            <div className="text-gray-600 font-medium">Humidity</div>
-            <div className="text-xs text-gray-500 mt-1">Optimal: 60-80%</div>
-          </div>
-          
-          <div className="metric-card text-center">
-            <div className="text-2xl mb-2">🌱</div>
-            <div className="text-2xl font-bold text-green-600">{data.realTime.soilMoisture}%</div>
-            <div className="text-gray-600 font-medium">Soil Moisture</div>
-            <div className="text-xs text-gray-500 mt-1">Optimal: 40-70%</div>
-          </div>
-          
-          <div className="metric-card text-center">
-            <div className="text-2xl mb-2">☀️</div>
-            <div className="text-2xl font-bold text-yellow-600">{data.realTime.lightIntensity}</div>
-            <div className="text-gray-600 font-medium">Light (lux)</div>
-            <div className="text-xs text-gray-500 mt-1">Optimal: 500-1000</div>
+        <div className="metric-card success">
+          <div className="metric-icon">💧</div>
+          <div className="metric-content">
+            <h3>Water Efficiency</h3>
+            <div className="metric-value">
+              {efficiency?.waterEfficiency?.value || 0} kg/L
+            </div>
+            <div className="metric-trend positive">
+              ↗ {efficiency?.waterEfficiency?.trend || 'stable'}
+            </div>
           </div>
         </div>
 
-        {/* Historical Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <MetricChart
-            title="Temperature Trend"
-            data={data.historical.map(d => d.temperature)}
-            color="primary"
-            unit="°C"
-            icon="🌡️"
-          />
-          
-          <MetricChart
-            title="Humidity Levels"
-            data={data.historical.map(d => d.humidity)}
-            color="info"
-            unit="%"
-            icon="💧"
-          />
-          
-          <MetricChart
-            title="Soil Moisture"
-            data={data.historical.map(d => d.soilMoisture)}
-            color="success"
-            unit="%"
-            icon="🌱"
-          />
-          
-          <MetricChart
-            title="Light Intensity"
-            data={data.historical.map(d => d.lightIntensity)}
-            color="warning"
-            unit=" lux"
-            icon="☀️"
+        <div className="metric-card warning">
+          <div className="metric-icon">⚡</div>
+          <div className="metric-content">
+            <h3>Energy Efficiency</h3>
+            <div className="metric-value">
+              {efficiency?.energyEfficiency?.value || 0} kg/kWh
+            </div>
+            <div className="metric-trend positive">
+              ↗ {efficiency?.energyEfficiency?.trend || 'stable'}
+            </div>
+          </div>
+        </div>
+
+        <div className="metric-card danger">
+          <div className="metric-icon">🌱</div>
+          <div className="metric-content">
+            <h3>Disease Risk</h3>
+            <div className="metric-value">
+              {predictions?.diseaseRisk?.value || 0}%
+            </div>
+            <div className="metric-trend negative">
+              ↓ {predictions?.diseaseRisk?.level || 'low'} risk
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="charts-grid">
+        <div className="chart-container">
+          <SimpleLineChart
+            data={data?.map(item => ({ date: item.date, value: item.temperature })) || []}
+            title="🌡️ Temperature Trends"
+            color="#FF6B6B"
           />
         </div>
 
-        {/* AI Predictions */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">🤖 AI Predictions & Insights</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <PredictionCard
-              title="Yield Forecast"
-              value={data.predictions.yieldIncrease}
-              unit="% ↗"
-              trend={15.2}
-              description="Expected yield vs last season"
-              icon="📈"
-            />
+        <div className="chart-container">
+          <SimpleLineChart
+            data={data?.map(item => ({ date: item.date, value: item.humidity })) || []}
+            title="💧 Humidity Levels"
+            color="#2196F3"
+          />
+        </div>
+
+        <div className="chart-container">
+          <SimpleLineChart
+            data={data?.map(item => ({ date: item.date, value: item.soilMoisture })) || []}
+            title="🌱 Soil Moisture"
+            color="#4CAF50"
+          />
+        </div>
+
+        <div className="chart-container">
+          <SimpleLineChart
+            data={data?.map(item => ({ date: item.date, value: item.lightIntensity })) || []}
+            title="☀️ Light Intensity"
+            color="#FF9800"
+          />
+        </div>
+      </div>
+
+      {/* Performance Metrics */}
+      <div className="performance-grid">
+        <div className="performance-card">
+          <h3>🏆 Performance vs Industry</h3>
+          <div className="comparison-item">
+            <span>Yield Performance</span>
+            <div className="comparison-bar">
+              <div className="bar yours" style={{ width: `${comparison?.industryBenchmark?.yield?.yours || 0}%` }}>
+                Your Farm: {comparison?.industryBenchmark?.yield?.yours || 0}%
+              </div>
+              <div className="bar industry" style={{ width: `${comparison?.industryBenchmark?.yield?.industry || 0}%` }}>
+                Industry: {comparison?.industryBenchmark?.yield?.industry || 0}%
+              </div>
+            </div>
+          </div>
+          
+          <div className="comparison-item">
+            <span>Water Efficiency</span>
+            <div className="comparison-bar">
+              <div className="bar yours" style={{ width: `${100 - (comparison?.industryBenchmark?.waterUsage?.yours || 0) / 2}%` }}>
+                Your Farm: {comparison?.industryBenchmark?.waterUsage?.yours || 0}L
+              </div>
+              <div className="bar industry" style={{ width: `${100 - (comparison?.industryBenchmark?.waterUsage?.industry || 0) / 2}%` }}>
+                Industry: {comparison?.industryBenchmark?.waterUsage?.industry || 0}L
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="performance-card">
+          <h3>💡 Efficiency Metrics</h3>
+          <div className="efficiency-metrics">
+            <div className="efficiency-item">
+              <span className="label">Water Efficiency</span>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${(efficiency?.waterEfficiency?.value || 0) * 40}%` }}
+                ></div>
+              </div>
+              <span className="value">{efficiency?.waterEfficiency?.value || 0} kg/L</span>
+            </div>
             
-            <PredictionCard
-              title="Water Savings"
-              value={data.predictions.waterSavings}
-              unit="% ↗"
-              trend={23}
-              description="Smart irrigation efficiency"
-              icon="💧"
-            />
+            <div className="efficiency-item">
+              <span className="label">Energy Efficiency</span>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill energy" 
+                  style={{ width: `${(efficiency?.energyEfficiency?.value || 0) * 33}%` }}
+                ></div>
+              </div>
+              <span className="value">{efficiency?.energyEfficiency?.value || 0} kg/kWh</span>
+            </div>
             
-            <PredictionCard
-              title="Disease Risk"
-              value={data.predictions.diseaseRisk}
-              unit="% ↘"
-              trend={-12}
-              description="Early warning system"
-              icon="🛡️"
-            />
-            
-            <PredictionCard
-              title="Harvest Date"
-              value={data.predictions.harvestDate}
-              unit=""
-              trend={5}
-              description="Optimal harvest timing"
-              icon="🌾"
-            />
+            <div className="efficiency-item">
+              <span className="label">Carbon Reduction</span>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill carbon" 
+                  style={{ width: `${efficiency?.carbonFootprint?.reduction || 0}%` }}
+                ></div>
+              </div>
+              <span className="value">{efficiency?.carbonFootprint?.reduction || 0}%</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Environmental Impact */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="card">
-            <div className="card-header">
-              <h3 className="text-xl font-bold text-gray-800">🌍 Carbon Impact</h3>
-              <p className="text-gray-600 text-sm">Environmental savings</p>
-            </div>
-            <div className="card-body text-center">
-              <div className="text-4xl font-bold text-green-600 mb-2">{data.realTime.carbonFootprint}</div>
-              <div className="text-gray-600">kg CO₂ saved/month</div>
-              <div className="mt-4 bg-green-100 rounded-lg p-3">
-                <div className="text-sm text-green-700 font-medium">25% reduction vs last year</div>
-              </div>
-            </div>
+      {/* Insights Panel */}
+      <div className="insights-panel">
+        <h3>🧠 AI-Powered Insights</h3>
+        <div className="insights-grid">
+          <div className="insight-card">
+            <h4>🎯 Harvest Prediction</h4>
+            <p>Estimated harvest date: <strong>{predictions?.harvestPrediction?.estimatedDate || 'Sep 15, 2025'}</strong></p>
+            <p>Days remaining: <strong>{predictions?.harvestPrediction?.daysRemaining || 16} days</strong></p>
           </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h3 className="text-xl font-bold text-gray-800">🚿 Water Efficiency</h3>
-              <p className="text-gray-600 text-sm">Smart irrigation gains</p>
-            </div>
-            <div className="card-body text-center">
-              <div className="text-4xl font-bold text-cyan-600 mb-2">{data.realTime.waterUsage}</div>
-              <div className="text-gray-600">liters saved/month</div>
-              <div className="mt-4 bg-cyan-100 rounded-lg p-3">
-                <div className="text-sm text-cyan-700 font-medium">30% more efficient</div>
-              </div>
-            </div>
+          
+          <div className="insight-card">
+            <h4>💧 Water Optimization</h4>
+            <p>Potential water savings: <strong>{predictions?.waterOptimization?.savings || 18}%</strong></p>
+            <p>Recommendation: Adjust irrigation timing based on soil moisture data</p>
           </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h3 className="text-xl font-bold text-gray-800">⚡ Energy Score</h3>
-              <p className="text-gray-600 text-sm">System optimization</p>
-            </div>
-            <div className="card-body text-center">
-              <div className="text-4xl font-bold text-yellow-600 mb-2">{data.realTime.energyEfficiency}%</div>
-              <div className="text-gray-600">efficiency rating</div>
-              <div className="mt-4 bg-yellow-100 rounded-lg p-3">
-                <div className="text-sm text-yellow-700 font-medium">Excellent performance</div>
-              </div>
-            </div>
+          
+          <div className="insight-card">
+            <h4>📊 Performance Comparison</h4>
+            <p>Your yield is <strong>{comparison?.industryBenchmark?.yield?.difference || 16}% above</strong> industry average</p>
+            <p>Water usage is <strong>{Math.abs(comparison?.industryBenchmark?.waterUsage?.difference || 33)}% below</strong> industry average</p>
           </div>
         </div>
       </div>

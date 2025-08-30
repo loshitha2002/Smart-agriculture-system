@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import WeatherWidget from '../components/Weather/WeatherWidget';
+import PWAStatus from '../components/PWA/PWAStatus';
 
 const Dashboard = () => {
   const [sensorData, setSensorData] = useState(null);
@@ -188,18 +190,9 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Weather Alert */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-info rounded-xl p-6 mb-8">
-          <div className="flex items-center">
-            <div className="text-2xl mr-3">🌤️</div>
-            <div>
-              <h3 className="font-bold text-info text-lg">Weather Update</h3>
-              <p className="text-gray-700">
-                Partly cloudy, 28°C. Perfect conditions for crop growth. 
-                <span className="text-info font-medium ml-1">Light irrigation recommended.</span>
-              </p>
-            </div>
-          </div>
+        {/* Weather Widget */}
+        <div className="mb-8">
+          <WeatherWidget />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -229,6 +222,11 @@ const Dashboard = () => {
                 onClick={() => window.location.href = '/analytics'}
               />
             </div>
+          </div>
+
+          {/* PWA Status */}
+          <div className="mb-6">
+            <PWAStatus />
           </div>
 
           {/* System Status */}

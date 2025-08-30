@@ -4,8 +4,43 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Agriculture IoT</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="AI-powered IoT assistant for smart farming with real-time monitoring and intelligent insights">
+  <meta name="theme-color" content="#667eea">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Smart Farm">
+  <meta name="msapplication-TileColor" content="#667eea">
+  <meta name="msapplication-config" content="/browserconfig.xml">
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+  
+  <!-- Icons -->
+  <link rel="icon" href="%PUBLIC_URL%/favicon.ico">
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.svg">
+  
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="http://localhost:5000">
 </head>
 <body>
   <div id="root"></div>
+  
+  <!-- PWA Install Script -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
 </body>
 </html>

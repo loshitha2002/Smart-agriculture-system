@@ -8,6 +8,9 @@ import Dashboard from './pages/Dashboard';
 import DiseaseDetection from './pages/DiseaseDetection';
 import IrrigationControl from './pages/IrrigationControl';
 import Analytics from './pages/Analytics';
+import Demo from './pages/Demo';
+import Weather from './pages/Weather';
+import PWA from './pages/PWA';
 
 function App() {
   return (
@@ -21,6 +24,9 @@ function App() {
             <Route path="/disease-detection" element={<DiseaseDetection />} />
             <Route path="/irrigation" element={<IrrigationControl />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/weather" element={<Weather />} />
+            <Route path="/pwa" element={<PWA />} />
           </Routes>
         </main>
       </div>

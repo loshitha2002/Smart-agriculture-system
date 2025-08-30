@@ -6,9 +6,12 @@ const Header = () => {
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊', description: 'Real-time monitoring' },
-    { path: '/disease-detection', label: 'AI Detection', icon: '�', description: 'Disease analysis' },
+    { path: '/disease-detection', label: 'AI Detection', icon: '🔬', description: 'Disease analysis' },
     { path: '/irrigation', label: 'Irrigation', icon: '💧', description: 'Smart watering' },
-    { path: '/analytics', label: 'Analytics', icon: '📈', description: 'Performance insights' }
+    { path: '/analytics', label: 'Analytics', icon: '📈', description: 'Performance insights' },
+    { path: '/weather', label: 'Weather', icon: '🌤️', description: 'Weather intelligence' },
+    { path: '/pwa', label: 'Install App', icon: '📱', description: 'Mobile app features' },
+    { path: '/demo', label: 'Demo Mode', icon: '🎯', description: 'Hackathon showcase' }
   ];
 
   return (

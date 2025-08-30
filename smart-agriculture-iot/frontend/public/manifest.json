@@ -1,7 +1,68 @@
 {
-  "short_name": "AgriIoT",
+  "short_name": "Smart Farm",
   "name": "Smart Agriculture IoT System",
-  "icons": [],
+  "description": "AI-powered IoT assistant for smart farming with real-time monitoring and intelligent insights",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
   "start_url": ".",
-  "display": "standalone"
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["productivity", "business", "utilities"],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "type": "image/png",
+      "sizes": "1280x720"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View real-time farm monitoring",
+      "url": "/dashboard",
+      "icons": [{ "src": "logo.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Weather",
+      "short_name": "Weather",
+      "description": "Check weather conditions",
+      "url": "/weather",
+      "icons": [{ "src": "logo.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI Detection",
+      "short_name": "AI Detection",
+      "description": "Disease detection analysis",
+      "url": "/disease-detection",
+      "icons": [{ "src": "logo.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Demo Mode",
+      "short_name": "Demo",
+      "description": "Hackathon demo mode",
+      "url": "/demo",
+      "icons": [{ "src": "logo.svg", "sizes": "192x192" }]
+    }
+  ]
 }

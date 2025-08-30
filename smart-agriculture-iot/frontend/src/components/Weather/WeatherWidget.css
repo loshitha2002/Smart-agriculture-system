@@ -1,0 +1,135 @@
+.weather-widget {
+  background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+  border-radius: 20px;
+  padding: 24px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(30, 136, 229, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.weather-widget:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(30, 136, 229, 0.4);
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.widget-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.location {
+  font-size: 14px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.weather-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.weather-icon {
+  font-size: 48px;
+}
+
+.weather-temp {
+  display: flex;
+  flex-direction: column;
+}
+
+.temp {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.description {
+  font-size: 14px;
+  opacity: 0.9;
+  text-transform: capitalize;
+  margin-top: 4px;
+}
+
+.weather-details {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.detail-icon {
+  font-size: 16px;
+}
+
+.detail-value {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.precipitation-alert {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 20px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.error {
+  color: #ffcdd2;
+}
+
+@media (max-width: 768px) {
+  .weather-widget {
+    padding: 16px;
+  }
+  
+  .weather-main {
+    gap: 12px;
+  }
+  
+  .weather-icon {
+    font-size: 40px;
+  }
+  
+  .temp {
+    font-size: 28px;
+  }
+  
+  .weather-details {
+    padding: 10px;
+  }
+}
