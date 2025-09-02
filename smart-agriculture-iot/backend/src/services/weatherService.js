@@ -2,34 +2,77 @@
 class WeatherService {
   constructor() {
     // Using OpenWeatherMap API (free tier: 1000 calls/day)
-    this.apiKey = process.env.WEATHER_API_KEY || 'demo_key';
+    this.apiKey = process.env.WEATHER_API_KEY || 'c931e811925153d890006e1322e9f85b'; // Temporary hardcoded key
     this.baseUrl = 'https://api.openweathermap.org/data/2.5';
     this.defaultLocation = {
-      lat: 6.9271, // Colombo, Sri Lanka coordinates
-      lon: 79.8612,
-      city: 'Colombo',
+      lat: parseFloat(process.env.DEFAULT_LAT) || 6.9271, // Colombo, Sri Lanka coordinates
+      lon: parseFloat(process.env.DEFAULT_LON) || 79.8612,
+      city: process.env.DEFAULT_CITY || 'Colombo',
       country: 'LK'
     };
+    
+    // Cache for reducing API calls
+    this.weatherCache = new Map();
+    this.cacheTimeout = parseInt(process.env.WEATHER_CACHE_DURATION) || 300000; // 5 minutes
+    
+    console.log(`🌤️ Weather Service initialized`);
+    console.log(`📍 Default location: ${this.defaultLocation.city} (${this.defaultLocation.lat}, ${this.defaultLocation.lon})`);
+    console.log(`🔑 API Key status: ${this.apiKey === 'demo_key' ? '❌ Demo mode' : '✅ Real API configured'}`);
+  }
+
+  // Helper method to check cache
+  getCachedData(key) {
+    const cached = this.weatherCache.get(key);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      console.log(`📋 Using cached weather data for ${key}`);
+      return cached.data;
+    }
+    return null;
+  }
+
+  // Helper method to set cache
+  setCachedData(key, data) {
+    this.weatherCache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
   }
 
   // Get current weather data
   async getCurrentWeather(lat = this.defaultLocation.lat, lon = this.defaultLocation.lon) {
     try {
+      const cacheKey = `current_${lat}_${lon}`;
+      const cached = this.getCachedData(cacheKey);
+      if (cached) return cached;
+
       if (this.apiKey === 'demo_key') {
+        console.log('⚠️ Using demo weather data - Add WEATHER_API_KEY to .env for real data');
         return this.getMockWeatherData();
       }
 
+      console.log(`🌐 Fetching real weather for coordinates: ${lat}, ${lon}`);
       const url = `${this.baseUrl}/weather?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=metric`;
-      const response = await fetch(url);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`Weather API error: ${response.status}`);
+        throw new Error(`Weather API error: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
-      return this.formatWeatherData(data);
+      const formattedData = this.formatWeatherData(data);
+      
+      this.setCachedData(cacheKey, formattedData);
+      console.log(`✅ Real weather data fetched for ${data.name}, ${data.sys.country}`);
+      
+      return formattedData;
     } catch (error) {
-      console.error('Weather service error:', error);
+      console.error('❌ Weather service error:', error.message);
+      console.log('🔄 Falling back to demo weather data');
       return this.getMockWeatherData();
     }
   }
@@ -37,21 +80,38 @@ class WeatherService {
   // Get 5-day weather forecast
   async getWeatherForecast(lat = this.defaultLocation.lat, lon = this.defaultLocation.lon) {
     try {
+      const cacheKey = `forecast_${lat}_${lon}`;
+      const cached = this.getCachedData(cacheKey);
+      if (cached) return cached;
+
       if (this.apiKey === 'demo_key') {
+        console.log('⚠️ Using demo forecast data - Add WEATHER_API_KEY to .env for real data');
         return this.getMockForecastData();
       }
 
+      console.log(`🔮 Fetching real forecast for coordinates: ${lat}, ${lon}`);
       const url = `${this.baseUrl}/forecast?lat=${lat}&lon=${lon}&appid=${this.apiKey}&units=metric`;
-      const response = await fetch(url);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`Forecast API error: ${response.status}`);
+        throw new Error(`Forecast API error: ${response.status} - ${response.statusText}`);
       }
 
       const data = await response.json();
-      return this.formatForecastData(data);
+      const formattedData = this.formatForecastData(data);
+      
+      this.setCachedData(cacheKey, formattedData);
+      console.log(`✅ Real forecast data fetched for ${data.city.name}, ${data.city.country}`);
+      
+      return formattedData;
     } catch (error) {
-      console.error('Forecast service error:', error);
+      console.error('❌ Forecast service error:', error.message);
+      console.log('🔄 Falling back to demo forecast data');
       return this.getMockForecastData();
     }
   }

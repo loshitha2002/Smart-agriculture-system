@@ -1,0 +1,21 @@
+Disease Class: Bacterial Blight
+==================================================
+
+Description: Bacterial infection causing leaf spots
+
+Symptoms: Water-soaked spots, yellowing, wilting
+
+Treatment: Copper-based bactericides, remove infected parts
+
+Image Requirements:
+- Add 50-200 images per class for good training
+- Use JPG, PNG formats
+- Clear, well-lit images preferred
+- Various angles and conditions
+- Image size: 224x224 pixels or larger
+
+Sources for images:
+- Plant pathology databases
+- Agricultural research institutes
+- Field photographs
+- Online plant disease resources

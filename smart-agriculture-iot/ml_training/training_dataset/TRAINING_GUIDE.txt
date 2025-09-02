@@ -1,0 +1,21 @@
+Plant Disease Dataset Training Guide
+========================================
+
+1. ADDING IMAGES:
+   - Add 50-200 images per disease class
+   - Use clear, high-quality images
+   - Ensure proper lighting and focus
+
+2. IMAGE SOURCES:
+   - PlantNet (https://plantnet.org/)
+   - Plant Pathology databases
+   - Agricultural university resources
+   - Field photography
+
+3. TRAINING COMMAND:
+   python train_disease_model.py --data_dir training_dataset
+
+4. EXPECTED RESULTS:
+   - Training time: 1-3 hours
+   - Expected accuracy: 85-95%
+   - Model size: ~50MB

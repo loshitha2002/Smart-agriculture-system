@@ -10,6 +10,7 @@ const Header = () => {
     { path: '/irrigation', label: 'Irrigation', icon: '💧', description: 'Smart watering' },
     { path: '/analytics', label: 'Analytics', icon: '📈', description: 'Performance insights' },
     { path: '/weather', label: 'Weather', icon: '🌤️', description: 'Weather intelligence' },
+    { path: '/dht22', label: 'DHT22 Sensor', icon: '🌡️', description: 'Temperature & humidity' },
     { path: '/pwa', label: 'Install App', icon: '📱', description: 'Mobile app features' },
     { path: '/demo', label: 'Demo Mode', icon: '🎯', description: 'Hackathon showcase' }
   ];

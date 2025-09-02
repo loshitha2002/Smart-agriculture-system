@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import WeatherWidget from '../components/Weather/WeatherWidget';
 import PWAStatus from '../components/PWA/PWAStatus';
 
 const Dashboard = () => {
   const [sensorData, setSensorData] = useState(null);
+  const [dht22Data, setDht22Data] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [connectionStatus, setConnectionStatus] = useState('connected');
@@ -12,8 +14,20 @@ const Dashboard = () => {
   const fetchSensorData = async () => {
     try {
       setConnectionStatus('connecting');
+      
+      // Fetch regular sensor data
       const response = await axios.get('http://localhost:5000/api/sensors');
       setSensorData(response.data);
+      
+      // Fetch DHT22 data
+      try {
+        const dht22Response = await axios.get('http://localhost:5000/api/dht22/latest');
+        setDht22Data(dht22Response.data);
+      } catch (dht22Error) {
+        console.log('DHT22 sensor not available yet');
+        setDht22Data(null);
+      }
+      
       setLastUpdated(new Date());
       setConnectionStatus('connected');
       setLoading(false);
@@ -170,18 +184,51 @@ const Dashboard = () => {
             icon="💧"
             color="primary"
           />
-          <SensorCard
-            title="Temperature"
-            data={sensorData?.temperature}
-            icon="🌡️"
-            color="warning"
-          />
-          <SensorCard
-            title="Humidity"
-            data={sensorData?.humidity}
-            icon="💨"
-            color="secondary"
-          />
+          
+          {/* DHT22 Temperature Card */}
+          {dht22Data ? (
+            <SensorCard
+              title="DHT22 Temperature"
+              data={{
+                value: `${dht22Data.temperature?.celsius?.toFixed(1)}°C`,
+                status: dht22Data.temperature?.celsius > 35 ? 'warning' : 
+                        dht22Data.temperature?.celsius < 15 ? 'critical' : 'normal',
+                lastUpdate: dht22Data.timestamp
+              }}
+              icon="🌡️"
+              color="warning"
+            />
+          ) : (
+            <SensorCard
+              title="Temperature"
+              data={sensorData?.temperature}
+              icon="🌡️"
+              color="warning"
+            />
+          )}
+          
+          {/* DHT22 Humidity Card */}
+          {dht22Data ? (
+            <SensorCard
+              title="DHT22 Humidity"
+              data={{
+                value: `${dht22Data.humidity?.value?.toFixed(1)}%`,
+                status: dht22Data.humidity?.value > 80 ? 'warning' : 
+                        dht22Data.humidity?.value < 30 ? 'critical' : 'normal',
+                lastUpdate: dht22Data.timestamp
+              }}
+              icon="💨"
+              color="secondary"
+            />
+          ) : (
+            <SensorCard
+              title="Humidity"
+              data={sensorData?.humidity}
+              icon="💨"
+              color="secondary"
+            />
+          )}
+          
           <SensorCard
             title="Light Intensity"
             data={sensorData?.lightIntensity}
@@ -194,6 +241,60 @@ const Dashboard = () => {
         <div className="mb-8">
           <WeatherWidget />
         </div>
+
+        {/* DHT22 Real Sensor Status */}
+        {dht22Data && (
+          <div className="mb-8">
+            <div className="bg-white rounded-xl shadow-lg border-l-4 border-l-green-500 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    🌡️ Real DHT22 Sensor Connected
+                  </h3>
+                  <p className="text-gray-600">
+                    Live environmental data from hardware sensor
+                  </p>
+                </div>
+                <Link 
+                  to="/dht22"
+                  className="bg-green-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-600 transition-colors duration-200"
+                >
+                  View Details →
+                </Link>
+              </div>
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {dht22Data.temperature?.celsius?.toFixed(1)}°C
+                  </div>
+                  <div className="text-sm text-gray-500">Temperature</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {dht22Data.humidity?.value?.toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-gray-500">Humidity</div>
+                </div>
+                {dht22Data.heatIndex && (
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {dht22Data.heatIndex?.celsius?.toFixed(1)}°C
+                    </div>
+                    <div className="text-sm text-gray-500">Heat Index</div>
+                  </div>
+                )}
+                <div className="text-center">
+                  <div className="text-sm font-medium text-green-600">
+                    ✅ Live
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date(dht22Data.timestamp).toLocaleTimeString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}

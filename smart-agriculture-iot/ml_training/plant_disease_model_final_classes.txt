@@ -1,0 +1,8 @@
+anthracnose
+bacterial_blight
+bacterial_leaf_streak
+brown_spot
+healthy
+leaf_blast
+sheath_blight
+tungro_virus

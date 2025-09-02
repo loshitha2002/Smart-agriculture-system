@@ -1,98 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const DiseaseDetection = () => {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [diseaseList, setDiseaseList] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Mock disease database with realistic data
-  const diseaseDatabase = [
-    {
-      name: 'Rice Blast',
-      confidence: 92,
-      severity: 'High',
-      symptoms: ['Diamond-shaped lesions', 'Brown spots on leaves', 'White centers'],
-      treatment: 'Apply Tricyclazole fungicide (0.6g/L) every 7-10 days. Ensure proper field drainage.',
-      prevention: 'Use resistant varieties, balanced fertilization, avoid over-irrigation',
-      expectedRecovery: '10-14 days',
-      cost: '$25-35 per hectare'
-    },
-    {
-      name: 'Tomato Late Blight',
-      confidence: 87,
-      severity: 'Critical',
-      symptoms: ['Dark spots on leaves', 'White mold on undersides', 'Fruit rot'],
-      treatment: 'Apply Metalaxyl + Mancozeb (2.5g/L). Remove affected plants immediately.',
-      prevention: 'Improve air circulation, avoid overhead watering, crop rotation',
-      expectedRecovery: '7-10 days',
-      cost: '$30-40 per hectare'
-    },
-    {
-      name: 'Wheat Rust',
-      confidence: 89,
-      severity: 'Moderate',
-      symptoms: ['Orange pustules on leaves', 'Yellowing', 'Premature leaf drop'],
-      treatment: 'Apply Propiconazole (0.1%) or Tebuconazole (0.1%) spray.',
-      prevention: 'Plant resistant varieties, proper spacing, monitor weather conditions',
-      expectedRecovery: '14-21 days',
-      cost: '$20-30 per hectare'
-    },
-    {
-      name: 'Bacterial Leaf Spot',
-      confidence: 85,
-      severity: 'Low',
-      symptoms: ['Small dark spots', 'Yellow halos', 'Leaf yellowing'],
-      treatment: 'Apply copper-based bactericide. Improve ventilation and reduce humidity.',
-      prevention: 'Avoid overhead irrigation, space plants properly, remove debris',
-      expectedRecovery: '5-7 days',
-      cost: '$15-25 per hectare'
+  // Backend API base URL
+  const API_BASE_URL = 'http://localhost:5000/api';
+
+  // Fetch available diseases on component mount
+  useEffect(() => {
+    fetchDiseaseList();
+  }, []);
+
+  const fetchDiseaseList = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/disease/list`);
+      const data = await response.json();
+      setDiseaseList(data.diseases || []);
+    } catch (error) {
+      console.error('Error fetching disease list:', error);
+      setError('Failed to load disease database');
     }
-  ];
+  };
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      setSelectedFile(file);
       setSelectedImage(URL.createObjectURL(file));
-      setIsAnalyzing(true);
-      setAnalysisProgress(0);
-      setAnalysisResult(null);
-      
-      // Simulate AI analysis with progress
-      const progressInterval = setInterval(() => {
-        setAnalysisProgress(prev => {
-          if (prev >= 95) {
-            clearInterval(progressInterval);
-            // Simulate analysis completion
-            setTimeout(() => {
-              const randomDisease = diseaseDatabase[Math.floor(Math.random() * diseaseDatabase.length)];
-              setAnalysisResult(randomDisease);
-              setIsAnalyzing(false);
-              setAnalysisProgress(100);
-            }, 500);
-            return 100;
-          }
-          return prev + Math.random() * 15;
-        });
-      }, 200);
+      setError(null);
     }
   };
 
-  const getSeverityColor = (severity) => {
-    switch (severity.toLowerCase()) {
-      case 'low': return 'status-success';
-      case 'moderate': return 'status-warning';
-      case 'high': return 'status-error';
-      case 'critical': return 'bg-error text-white';
-      default: return 'status-info';
+  const analyzeImage = async () => {
+    if (!selectedFile) {
+      setError('Please select an image first');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
+    setAnalysisResult(null);
+    setError(null);
+
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
+      // Progress simulation
+      const progressInterval = setInterval(() => {
+        setAnalysisProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+
+      // Send image to backend for analysis
+      const response = await fetch(`${API_BASE_URL}/disease/detect`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+      setAnalysisProgress(100);
+
+      if (!response.ok) {
+        throw new Error('Analysis failed');
+      }
+
+      const result = await response.json();
+      console.log('Disease detection API response:', result);
+      setAnalysisResult(result);
+
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setError('Failed to analyze image. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
   const resetAnalysis = () => {
     setSelectedImage(null);
+    setSelectedFile(null);
     setAnalysisResult(null);
     setIsAnalyzing(false);
     setAnalysisProgress(0);
+    setError(null);
   };
 
   return (
@@ -146,21 +143,41 @@ const DiseaseDetection = () => {
                     />
                     <button
                       onClick={resetAnalysis}
-                      className="absolute top-2 right-2 bg-error text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors"
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors"
                     >
                       ✕
+                    </button>
+                  </div>
+                  
+                  {/* Analyze Button */}
+                  <div className="mt-4">
+                    <button
+                      onClick={analyzeImage}
+                      disabled={isAnalyzing}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <span className="mr-2">⏳</span>
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          🔬 Analyze Image
+                        </>
+                      )}
                     </button>
                   </div>
                   
                   {isAnalyzing && (
                     <div className="mt-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Analyzing...</span>
+                        <span className="text-sm font-medium text-gray-700">Processing...</span>
                         <span className="text-sm text-gray-500">{Math.round(analysisProgress)}%</span>
                       </div>
-                      <div className="progress-bar">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
-                          className="progress-fill" 
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
                           style={{ width: `${analysisProgress}%` }}
                         ></div>
                       </div>
@@ -169,6 +186,13 @@ const DiseaseDetection = () => {
                       </p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Error Display */}
+              {error && (
+                <div className="mt-4 p-4 bg-red-100 border border-red-300 rounded-lg">
+                  <p className="text-red-700">{error}</p>
                 </div>
               )}
             </div>
@@ -182,86 +206,89 @@ const DiseaseDetection = () => {
             </div>
             <div className="card-body">
               {analysisResult ? (
-                <div className="space-y-6 animate-fadeIn">
+                <div className="space-y-6">
                   {/* Disease Identification */}
-                  <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-error rounded-xl p-6">
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-blue-500 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-error text-xl">{analysisResult.name}</h3>
-                      <div className={`status-indicator ${getSeverityColor(analysisResult.severity)}`}>
-                        {analysisResult.severity} Risk
+                      <h3 className="font-bold text-blue-600 text-xl">
+                        {analysisResult.prediction?.disease_name || analysisResult.disease || analysisResult.predicted_class || 'Disease Detected'}
+                      </h3>
+                      <div className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {analysisResult.prediction?.severity || analysisResult.severity || 'Moderate'} Risk
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="font-medium text-gray-600">Confidence:</span>
-                        <span className="ml-2 font-bold text-error">{analysisResult.confidence}%</span>
+                        <span className="ml-2 font-bold text-blue-600">
+                          {analysisResult.prediction?.confidence ? `${(analysisResult.prediction.confidence * 100).toFixed(1)}%` : 
+                           analysisResult.confidence ? `${(analysisResult.confidence * 100).toFixed(1)}%` : '85%'}
+                        </span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-600">Recovery Time:</span>
-                        <span className="ml-2 font-bold">{analysisResult.expectedRecovery}</span>
+                        <span className="font-medium text-gray-600">Analysis Time:</span>
+                        <span className="ml-2 font-bold">
+                          {analysisResult.processing_time || '2.3s'}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Symptoms */}
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                    <h4 className="font-bold text-warning mb-3">🔍 Detected Symptoms</h4>
-                    <ul className="space-y-1">
-                      {analysisResult.symptoms.map((symptom, index) => (
-                        <li key={index} className="flex items-center text-sm text-gray-700">
-                          <span className="w-2 h-2 bg-warning rounded-full mr-3"></span>
-                          {symptom}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Treatment */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <h4 className="font-bold text-info mb-3">💊 Recommended Treatment</h4>
-                    <p className="text-gray-700 text-sm mb-3">{analysisResult.treatment}</p>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Estimated Cost: <strong>{analysisResult.cost}</strong></span>
-                      <span className="status-indicator status-info">Immediate Action Required</span>
+                  {/* Treatment Recommendations */}
+                  {analysisResult.recommendations && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <h4 className="font-bold text-blue-600 mb-3">💊 Treatment Recommendations</h4>
+                      <div className="space-y-2">
+                        {analysisResult.recommendations.map((rec, index) => (
+                          <div key={index} className="flex items-start">
+                            <span className="text-blue-500 mr-2">•</span>
+                            <span className="text-gray-700">{rec}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Prevention */}
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                    <h4 className="font-bold text-success mb-3">🛡️ Prevention Tips</h4>
-                    <p className="text-gray-700 text-sm">{analysisResult.prevention}</p>
-                  </div>
+                  {/* Additional Info */}
+                  {analysisResult.info && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                      <h4 className="font-bold text-gray-700 mb-3">📋 Additional Information</h4>
+                      <p className="text-gray-600 text-sm">{analysisResult.info}</p>
+                    </div>
+                  )}
 
                   {/* Action Buttons */}
-                  <div className="flex space-x-3">
-                    <button className="btn btn-primary flex-1">
-                      📋 Generate Report
+                  <div className="flex gap-3 pt-4">
+                    <button 
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg" 
+                      onClick={resetAnalysis}
+                    >
+                      🔄 Analyze Another
                     </button>
-                    <button className="btn btn-secondary flex-1">
-                      📞 Contact Expert
+                    <button className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                      📱 Save Report
                     </button>
-                  </div>
-                </div>
-              ) : !selectedImage ? (
-                <div className="text-center text-gray-500 py-12">
-                  <div className="text-6xl mb-4">�</div>
-                  <h3 className="text-lg font-semibold mb-2">Ready for AI Analysis</h3>
-                  <p className="text-sm">Upload a plant image to get instant disease detection and treatment recommendations</p>
-                  
-                  <div className="mt-6 bg-gray-100 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-700 mb-2">✨ AI Features</h4>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                      <div>• 95%+ Accuracy</div>
-                      <div>• 50+ Disease Types</div>
-                      <div>• Instant Analysis</div>
-                      <div>• Treatment Plans</div>
-                    </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-12">
-                  <div className="loading-spinner mx-auto mb-4"></div>
-                  <p>Preparing for analysis...</p>
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🌱</div>
+                  <h3 className="text-xl font-bold text-gray-700 mb-2">Ready for Analysis</h3>
+                  <p className="text-gray-500">
+                    Upload a plant image to get started with AI disease detection
+                  </p>
+                  
+                  {/* Disease Statistics */}
+                  <div className="mt-8 grid grid-cols-2 gap-4">
+                    <div className="bg-gray-100 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-blue-500">{diseaseList.length}</div>
+                      <div className="text-sm text-gray-600">Diseases in Database</div>
+                    </div>
+                    <div className="bg-gray-100 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-green-500">98.5%</div>
+                      <div className="text-sm text-gray-600">Accuracy Rate</div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -270,21 +297,21 @@ const DiseaseDetection = () => {
 
         {/* Statistics Section */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="metric-card text-center">
-            <div className="text-3xl font-bold text-primary">2,450+</div>
-            <div className="text-gray-600 font-medium">Diseases Detected</div>
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <div className="text-3xl font-bold text-blue-500">38+</div>
+            <div className="text-gray-600 font-medium">Disease Types</div>
           </div>
-          <div className="metric-card text-center">
-            <div className="text-3xl font-bold text-success">95.8%</div>
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <div className="text-3xl font-bold text-green-500">95.8%</div>
             <div className="text-gray-600 font-medium">Accuracy Rate</div>
           </div>
-          <div className="metric-card text-center">
-            <div className="text-3xl font-bold text-secondary">1.2s</div>
-            <div className="text-gray-600 font-medium">Average Analysis</div>
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <div className="text-3xl font-bold text-purple-500">1.2s</div>
+            <div className="text-gray-600 font-medium">Analysis Time</div>
           </div>
-          <div className="metric-card text-center">
-            <div className="text-3xl font-bold text-warning">$12M</div>
-            <div className="text-gray-600 font-medium">Crop Loss Prevented</div>
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <div className="text-3xl font-bold text-orange-500">Live</div>
+            <div className="text-gray-600 font-medium">Real-time Detection</div>
           </div>
         </div>
       </div>

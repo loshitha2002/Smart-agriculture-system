@@ -1,0 +1,2 @@
+Add bacterial blight images to this folder
+Recommended: 50+ images for good training results

@@ -11,6 +11,7 @@ import Analytics from './pages/Analytics';
 import Demo from './pages/Demo';
 import Weather from './pages/Weather';
 import PWA from './pages/PWA';
+import DHT22Monitor from './components/DHT22/DHT22Monitor';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/demo" element={<Demo />} />
             <Route path="/weather" element={<Weather />} />
             <Route path="/pwa" element={<PWA />} />
+            <Route path="/dht22" element={<DHT22Monitor />} />
           </Routes>
         </main>
       </div>

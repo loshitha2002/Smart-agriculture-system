@@ -1,0 +1,2 @@
+Add tungro virus images to this folder
+Recommended: 50+ images for good training results

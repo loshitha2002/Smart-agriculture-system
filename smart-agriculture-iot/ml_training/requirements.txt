@@ -1,0 +1,41 @@
+# Machine Learning Training Requirements
+# ===================================
+
+# Deep Learning Framework
+tensorflow>=2.15.0
+keras>=3.0.0
+
+# Data Processing
+numpy>=1.24.0
+pandas>=2.0.0
+pillow>=10.0.0
+opencv-python>=4.8.0
+
+# Scientific Computing
+scikit-learn>=1.3.0
+scipy>=1.11.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.15.0
+
+# Data Download
+kaggle>=1.5.16
+requests>=2.31.0
+tqdm>=4.65.0
+
+# Image Augmentation
+albumentations>=1.3.0
+imgaug>=0.4.0
+
+# Model Optimization
+optuna>=3.3.0
+tensorflow-addons>=0.21.0
+
+# Progress Tracking
+wandb>=0.15.0
+
+# Utilities
+pathlib2>=2.3.7
+argparse>=1.4.0

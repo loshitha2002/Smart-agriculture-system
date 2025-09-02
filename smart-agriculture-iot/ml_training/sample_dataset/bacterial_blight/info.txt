@@ -1,0 +1,8 @@
+Plant Disease Class: bacterial_blight
+Add your plant leaf images here (JPG, PNG)
+Recommended: 100+ images per class for good results
+Image requirements:
+- Clear leaf images
+- Good lighting
+- Minimal background
+- Various angles/conditions

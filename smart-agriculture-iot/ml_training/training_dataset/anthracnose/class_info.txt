@@ -1,0 +1,21 @@
+Disease Class: Anthracnose
+==================================================
+
+Description: Fungal disease causing dark lesions
+
+Symptoms: Dark, sunken spots, pink spore masses
+
+Treatment: Fungicide spray, remove plant debris
+
+Image Requirements:
+- Add 50-200 images per class for good training
+- Use JPG, PNG formats
+- Clear, well-lit images preferred
+- Various angles and conditions
+- Image size: 224x224 pixels or larger
+
+Sources for images:
+- Plant pathology databases
+- Agricultural research institutes
+- Field photographs
+- Online plant disease resources

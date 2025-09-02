@@ -1,0 +1,21 @@
+Disease Class: Healthy
+==================================================
+
+Description: Healthy plants with no visible diseases
+
+Symptoms: Green leaves, normal growth, no spots or discoloration
+
+Treatment: Continue regular care and monitoring
+
+Image Requirements:
+- Add 50-200 images per class for good training
+- Use JPG, PNG formats
+- Clear, well-lit images preferred
+- Various angles and conditions
+- Image size: 224x224 pixels or larger
+
+Sources for images:
+- Plant pathology databases
+- Agricultural research institutes
+- Field photographs
+- Online plant disease resources
